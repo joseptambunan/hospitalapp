@@ -12,12 +12,22 @@ class Profile_model extends CI_Model {
  		return $run_profile->result_array();
   	}
 
-  	function visit_profile(){
+  	function visit_profile( $limit = 5){
+	    $this->load->model('app/master_model','master');
   		$patien_profile_id = $this->input->post("profile_id");
-  		$query_visit = "SELECT * FROM kunjungan WHERE 1 AND patient_id = ? ORDER BY id desc";
+  		$query_visit = "SELECT * FROM kunjungan WHERE 1 AND patient_id = ? ORDER BY id desc LIMIT 0, $limit ";
   		$run_visit = $this->db->query($query_visit, array($patien_profile_id));
+  		$array_visit = array();
+  		$receipt_id = "";
+  		foreach ($run_visit->result_array() as $key => $value) {
+  			$array_visit[$key]['general'] = $run_visit->result_array();
+  			$receipt_list = $this->master->list_medicine($value['id']);
+  			$array_visit[$key]['medicine_list'] = $receipt_list;
+  		}
 
-  		return $run_visit->result_array();
+
+  		return $array_visit;
   	}
-
+  	
 }
+?>
