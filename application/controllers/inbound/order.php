@@ -32,5 +32,13 @@ class Order extends CI_Controller {
 		echo json_encode($data);
 	}	
 
+	public function update_order(){
+		$order_id = $this->input->post("order_id");
+		$status = $this->input->post("status");
+		$this->db->query("UPDATE order_patient set status = '$status' where id = '$order_id'");
+		$data['error_code'] = 0;
+		$data['message'] = "order has been updated";
+		echo json_encode($data);
+	}
 }
 ?>

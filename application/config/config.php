@@ -136,7 +136,7 @@ $config['subclass_prefix'] = 'MY_';
 | Note: This will NOT disable or override the CodeIgniter-specific
 |	autoloading (application/config/autoload.php)
 */
-$config['composer_autoload'] = FALSE;
+$config['composer_autoload'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------
@@ -521,3 +521,11 @@ $config['rewrite_short_tags'] = FALSE;
 | Array:		array('10.0.1.200', '192.168.5.0/24')
 */
 $config['proxy_ips'] = '';
+$config['secret_key'] = 'HOSPITAL_APPS';
+$config['status_order'] = array(
+	"1" => "Status Order 1",
+	"2" => "Status Order 2",
+	"3" => "Status Order 3",
+	"4" => "Status Order 4", 
+	"5" => "Status Order 5"
+);

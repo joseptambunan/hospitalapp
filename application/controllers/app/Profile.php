@@ -1,5 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+require_once('vendor/autoload.php');
+use \Firebase\JWT\JWT;
 
 class Profile extends CI_Controller {
 
@@ -8,11 +10,19 @@ class Profile extends CI_Controller {
 	    $this->load->model('inbound/access_model','access');
 	    $this->load->model('app/profile_model','profile');
 	    $this->load->model('app/master_model','master');
+	    $this->config->load('config');
 
 	    $auth = $this->access->check_header();
 	    if ( $auth != true ){
 	    	$data['error_code'] = "401";
 	    	$data['message'] = "HEADER NOT ALLOWED";
+	    	echo json_encode($data);
+	    	exit;
+	    }
+
+	    if ( !(isset($_SERVER['HTTP_TOKEN']))) {
+	    	$data['error_code'] = "401";
+	    	$data['message'] = "HEADER TOKEN NOT AVAILABLE";
 	    	echo json_encode($data);
 	    	exit;
 	    }
@@ -22,6 +32,14 @@ class Profile extends CI_Controller {
 		$patient_profile_id = $this->input->post("patient_profile_id");
 		$longitude = $this->input->post("longitude");
 		$latitude = $this->input->post("latitude");
+		$access_token = $_SERVER['HTTP_TOKEN'];
+
+		if ( $this->profile->check_token($access_token, $patient_profile_id) == false ){
+			$data['error_code'] = "401";
+			$data['message'] = "INVALID TOKEN";
+			echo json_encode($data);
+			exit();
+		}
 
 		$array_update = array(
 			"longitude" => $longitude,
@@ -29,7 +47,7 @@ class Profile extends CI_Controller {
 		);
 		$this->db->where("id", $patient_profile_id);
 		$this->db->update("patient_profile",$array_update);
-		$data['status'] = "200";
+		$data['error_code'] = "200";
 		$data['message'] = "Coordinate Has ben Update";
 
 		echo json_encode($data);
@@ -44,43 +62,145 @@ class Profile extends CI_Controller {
 			$array_profile['detail_profile'] = $profile[0];
 		}
 
-		if ( count($visit) > 0 ){
-			$array_profile['visit'] = $visit[0];
+		$access_token = $_SERVER['HTTP_TOKEN'];
+		if ( $this->profile->check_token($access_token, $profile_id) == false ){
+			$data['status'] = "401";
+			$data['message'] = "INVALID TOKEN";
+			echo json_encode($data);
+			exit();
 		}
+
+		$array_profile['visit'] = array();
+	
 		echo json_encode($array_profile);
 	}
 
-	public function order(){
+	public function check_order(){
+		$data['error_code'] = "200";
+		$data['code'] = "AVAILABLE";
+		$data['content'] = "Patient can order medicine";
+
 		$profile_id = $this->input->post("profile_id");
-		$delivery_date = date("Y-m-d", strtotime($this->input->post("delivery_date")));
-		$visit = $this->profile->visit_profile($profile_id);
-		$profile = $this->profile->detail_profile($profile_id);
-		$doctor_id = "";
-		$obat = "";
-		if ( count($visit) > 0 ){
-			$latest_visit = $visit[0];
-			$doctor_id = $latest_visit['general'][0]['doctor_id'];
-			$array_insert = array(
-				"patient_id" => $profile_id,
-				"delivery_date" => $delivery_date,
-				"doctor_id" => $doctor_id,
-				"created_at" => date("Y-m-d H:i:s"),
-				"status" => 1
-			);
-			$this->db->insert("order_patient", $array_insert);
-			$list_obat = $visit[0]['medicine_list']['medicine'];
-			foreach ($list_obat as $key_obat => $value_obat) {
-				$obat .=  $value_obat['id'].',';
-			}
-			$obat = trim($obat,",");
-			$created_order = $this->master->create_visit( $profile_id, $profile[0]['no_medrec'], $doctor_id , $obat, $delivery_date );
+		$access_token = $_SERVER['HTTP_TOKEN'];
+
+		if ( $this->profile->check_token($access_token, $profile_id) == false ){
+			$data['error_code'] = "401";
+			$data['message'] = "INVALID TOKEN";
+			echo json_encode($data);
+			exit();
 		}
 
-		$data['status'] = "200";
-		$data['message'] = "Order has been created";
-		$data['profile_id'] = $profile_id;
+		$qry_check_order = "SELECT * FROM order_patient WHERE 1 AND patient_id = ? order by id DESC LIMIT 0,1";
+		$run_check_order = $this->db->query($qry_check_order, array($profile_id));
+		if ( $run_check_order->num_rows() > 0 ){
+			$data_order = $run_check_order->result_array();
+			if ( $data_order[0]['keluhan'] == 1 ){
+				$now = strtotime(date("Y-m-d H:i:s"));
+				$order_time = strtotime($data_order[0]['created_at']);
+				$diff = ($now - $order_time) / (60 * 60 * 24);
+				if ( $diff <= 7 ){
+					$data['error_code'] = "200";
+					$data['code'] = "LOCKED";
+					$data['content'] = "Patient can not order medicine";
+				}
+			}
+		}
+
 		echo json_encode($data);
 	}
+
+	public function update_address(){
+		$profile_id = $this->input->post("profile_id");
+		$address = $this->input->post("address");
+		$access_token = $_SERVER['HTTP_TOKEN'];
+
+		if ( $this->profile->check_token($access_token, $profile_id) == false ){
+			$data['error_code'] = "401";
+			$data['message'] = "INVALID TOKEN";
+			echo json_encode($data);
+			exit();
+		}
+
+		$this->db->query("UPDATE patient_profile set address = '$address' WHERE 1 AND id = $profile_id ");
+
+		$data['error_code'] = "200";
+		$data['message'] = "Address has been updated";
+		echo json_encode($data);
+	}
+
+
+	public function order(){
+		$profile_id = $this->input->post("profile_id");
+		$keluhan = $this->input->post("keluhan");
+		$access_token = $_SERVER['HTTP_TOKEN'];
+
+		if ( $this->profile->check_token($access_token, $profile_id) == false ){
+			$data['error_code'] = "401";
+			$data['message'] = "INVALID TOKEN";
+			echo json_encode($data);
+			exit();
+		}
+
+		$array_insert = array(
+			"patient_id" => $profile_id,
+			"delivery_date" => date("Y-m-d H:i:s"),
+			"created_at" => date("Y-m-d H:i:s"),
+			"status" => 1,
+			"keluhan" => $keluhan
+		);
+		$this->db->insert("order_patient", $array_insert);
+		if ( $keluhan == 1 ){
+			$data['error_code'] = "201";
+			$data['message'] = "Queue has been canceled because any complain";
+			echo json_encode($data);
+			exit();
+		}
+
+		$data['error_code'] = "200";
+		$data['message'] = "Queue has been registered";
+		echo json_encode($data);
+		
+	}
+
+	public function get_detail_order($profile_id, $order_id){
+		$profile_id = $profile_id;
+		$order_id = $order_id;
+		$access_token = $_SERVER['HTTP_TOKEN'];
+		$description = $this->config->item('status_order');
+		$address = "";
+
+		if ( $this->profile->check_token($access_token, $profile_id) == false ){
+			$data['error_code'] = "401";
+			$data['message'] = "INVALID TOKEN";
+			echo json_encode($data);
+			exit();
+		}
+
+		$check_order = "SELECT * FROM order_patient where 1 AND id = ? ";
+		$run_order = $this->db->query($check_order, array($order_id));
+		if ( $run_order->num_rows() <= 0 ){
+			$data['error_code'] = "401";
+			$data['message'] = "Order not Exist";
+		}
+
+		$check_profile = "SELECT * FROM patient_profile WHERE 1 AND ? ";
+		$run_profile = $this->db->query($check_profile, array($profile_id));
+		if ( $run_profile->num_rows() > 0 ){
+			$res_order = $run_profile->result_array();
+			$address = $res_order[0]['address'];
+		}
+
+		$res_order = $run_order->result_array();
+		$array_data['id'] = $res_order[0]['id'];
+		$array_data['date'] = $res_order[0]['created_at'];
+		$array_data['status'] = $res_order[0]['status'];
+		$array_data['description'] = $description[$res_order[0]['status']];
+		$array_data['address'] = $address;
+		$data['error_code'] = "200";
+		$data['status'] = $array_data;
+		echo json_encode($data);
+	}
+
 }
 
 ?>
