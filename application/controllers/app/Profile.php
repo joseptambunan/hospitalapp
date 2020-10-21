@@ -14,14 +14,14 @@ class Profile extends CI_Controller {
 
 	    $auth = $this->access->check_header();
 	    if ( $auth != true ){
-	    	$data['error_code'] = "401";
+	    	$data['code'] = "401";
 	    	$data['message'] = "HEADER NOT ALLOWED";
 	    	echo json_encode($data);
 	    	exit;
 	    }
 
 	    if ( !(isset($_SERVER['HTTP_TOKEN']))) {
-	    	$data['error_code'] = "401";
+	    	$data['code'] = "401";
 	    	$data['message'] = "HEADER TOKEN NOT AVAILABLE";
 	    	echo json_encode($data);
 	    	exit;
@@ -35,7 +35,7 @@ class Profile extends CI_Controller {
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $patient_profile_id) == false ){
-			$data['error_code'] = "401";
+			$data['code'] = "401";
 			$data['message'] = "INVALID TOKEN";
 			echo json_encode($data);
 			exit();
@@ -47,7 +47,7 @@ class Profile extends CI_Controller {
 		);
 		$this->db->where("id", $patient_profile_id);
 		$this->db->update("patient_profile",$array_update);
-		$data['error_code'] = "200";
+		$data['code'] = "200";
 		$data['message'] = "Coordinate Has ben Update";
 
 		echo json_encode($data);
@@ -63,7 +63,7 @@ class Profile extends CI_Controller {
 
 		$access_token = $_SERVER['HTTP_TOKEN'];
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){
-			$data['status'] = "401";
+			$data['code'] = "401";
 			$data['message'] = "INVALID TOKEN";
 			echo json_encode($data);
 			exit();
@@ -75,15 +75,15 @@ class Profile extends CI_Controller {
 	}
 
 	public function check_order($profile_id){
-		$data['error_code'] = "200";
-		$data['code'] = "AVAILABLE";
+		$data['code'] = "200";
+		$data['status_order'] = "AVAILABLE";
 		$data['content'] = "Patient can order medicine";
 
 		$profile_id = $profile_id;
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){
-			$data['error_code'] = "401";
+			$data['code'] = "401";
 			$data['message'] = "INVALID TOKEN";
 			echo json_encode($data);
 			exit();
@@ -114,7 +114,7 @@ class Profile extends CI_Controller {
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){
-			$data['error_code'] = "401";
+			$data['code'] = "401";
 			$data['message'] = "INVALID TOKEN";
 			echo json_encode($data);
 			exit();
@@ -122,7 +122,7 @@ class Profile extends CI_Controller {
 
 		$this->db->query("UPDATE patient_profile set address = '$address' WHERE 1 AND id = $profile_id ");
 
-		$data['error_code'] = "200";
+		$data['code'] = "200";
 		$data['message'] = "Address has been updated";
 		echo json_encode($data);
 	}
@@ -134,7 +134,7 @@ class Profile extends CI_Controller {
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){
-			$data['error_code'] = "401";
+			$data['code'] = "401";
 			$data['message'] = "INVALID TOKEN";
 			echo json_encode($data);
 			exit();
@@ -149,13 +149,13 @@ class Profile extends CI_Controller {
 		);
 		$this->db->insert("order_patient", $array_insert);
 		if ( $keluhan == 1 ){
-			$data['error_code'] = "201";
+			$data['code'] = "201";
 			$data['message'] = "Queue has been canceled because any complain";
 			echo json_encode($data);
 			exit();
 		}
 
-		$data['error_code'] = "200";
+		$data['code'] = "200";
 		$data['message'] = "Queue has been registered";
 		echo json_encode($data);
 		
@@ -169,7 +169,7 @@ class Profile extends CI_Controller {
 		$address = "";
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){
-			$data['error_code'] = "401";
+			$data['code'] = "401";
 			$data['message'] = "INVALID TOKEN";
 			echo json_encode($data);
 			exit();
@@ -178,7 +178,7 @@ class Profile extends CI_Controller {
 		$check_order = "SELECT * FROM order_patient where 1 AND id = ? ";
 		$run_order = $this->db->query($check_order, array($order_id));
 		if ( $run_order->num_rows() <= 0 ){
-			$data['error_code'] = "401";
+			$data['code'] = "401";
 			$data['message'] = "Order not Exist";
 		}
 
@@ -195,7 +195,7 @@ class Profile extends CI_Controller {
 		$array_data['status'] = $res_order[0]['status'];
 		$array_data['description'] = $description[$res_order[0]['status']];
 		$array_data['address'] = $address;
-		$data['error_code'] = "200";
+		$data['code'] = "200";
 		$data['status'] = $array_data;
 		echo json_encode($data);
 	}

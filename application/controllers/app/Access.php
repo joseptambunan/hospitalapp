@@ -13,7 +13,7 @@ class Access extends CI_Controller {
 	    $auth = $this->access->check_header();
 
 	    if ( $auth != true ){
-	    	$data['error_code'] = "401";
+	    	$data['code'] = "401";
 	    	$data['message'] = "HEADER NOT ALLOWED";
 	    	echo json_encode($data);
 	    	exit;
@@ -26,7 +26,7 @@ class Access extends CI_Controller {
 		$check_bpjs = "SELECT * FROM patient_login WHERE 1 AND ( no_bpjs = ? OR no_medrec = ? ) AND password = ?";
 		$run_bpjs = $this->db->query($check_bpjs,array($bpjs_number, $bpjs_number,$enc_password));
 		if ( $run_bpjs->num_rows() <= 0 ){
-			$data['error_code'] = "401";
+			$data['code'] = "401";
 	    	$data['message'] = "User not authorized";
 	    	echo json_encode($data);
 	    	exit;
@@ -38,7 +38,7 @@ class Access extends CI_Controller {
 		$run_patient_profile = $this->db->query($qry_patient_profile, array($patient_login_id));
 
 		if ( $run_patient_profile->num_rows() <= 0 ){
-			$data['error_code'] = "401";
+			$data['code'] = "401";
 	    	$data['message'] = "User not found ";
 	    	echo json_encode($data);
 	    	exit;
@@ -57,8 +57,8 @@ class Access extends CI_Controller {
 		$this->db->query("UPDATE patient_login set last_activity = now(), last_login = now(), remember_token = '$access_token' WHERE id = '$patient_login_id'");
 
 
-		$data['error_code'] = "200";
-		$data['error_message'] = "User authorized";
+		$data['code'] = "200";
+		$data['message'] = "User authorized";
 		$data['access_token'] = $access_token;
 		$data['profile_id'] = $data_profile[0]['id'];
 			
@@ -81,8 +81,8 @@ class Access extends CI_Controller {
 		$check_bpjs = "SELECT * FROM patient_login WHERE 1 AND no_bpjs = ? AND no_medrec = ? AND dob = ? ";
 		$run_bpjs = $this->db->query($check_bpjs, array($bpjs_number,$medic_number,$date_of_birth));
 		if ( $run_bpjs->num_rows() <= 0 ){
-			$data['error_code'] = "401";
-			$data['error_message'] = "BPJS and Medical Number not exist";
+			$data['code'] = "401";
+			$data['message'] = "BPJS and Medical Number not exist";
 			echo json_encode($data);
 			exit;
 		}else{
@@ -96,8 +96,8 @@ class Access extends CI_Controller {
 		$check_profile = "SELECT * FROM patient_profile WHERE 1 AND patient_login_id = ? ";
 		$run_profile = $this->db->query($check_profile,array($patient_login_id));
 		if ( $run_profile->num_rows() > 0 ){
-			$data['error_code'] = "401";
-			$data['error_message'] = "Profile is exist";
+			$data['code'] = "401";
+			$data['message'] = "Profile is exist";
 			echo json_encode($data);
 			exit;
 		}
@@ -124,8 +124,8 @@ class Access extends CI_Controller {
 		$this->db->query("UPDATE patient_login set last_activity = now(), date_created = '$created_at', password = '$password', last_login = now(), remember_token = '$access_token' WHERE id = '$patient_login_id'");
 
 
-		$data['error_code'] = "200";
-		$data['error_message'] = "Data User Success";
+		$data['code'] = "200";
+		$data['message'] = "Data User Success";
 		$data['patiend_id'] = $patient_profile_id;
 		$data['token'] = $access_token;
 		echo json_encode($data);
