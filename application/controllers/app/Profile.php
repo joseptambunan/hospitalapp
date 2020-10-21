@@ -53,11 +53,10 @@ class Profile extends CI_Controller {
 		echo json_encode($data);
 	}
 
-	public function detail_profile(){
-		$profile_id = $this->input->post("profile_id");
+	public function detail_profile($profile_id){
+		$profile_id = $profile_id;
 		$profile = $this->profile->detail_profile($profile_id);
 		$visit = $this->profile->visit_profile($profile_id);
-
 		if ( count($profile) > 0 ){
 			$array_profile['detail_profile'] = $profile[0];
 		}
@@ -75,12 +74,12 @@ class Profile extends CI_Controller {
 		echo json_encode($array_profile);
 	}
 
-	public function check_order(){
+	public function check_order($profile_id){
 		$data['error_code'] = "200";
 		$data['code'] = "AVAILABLE";
 		$data['content'] = "Patient can order medicine";
 
-		$profile_id = $this->input->post("profile_id");
+		$profile_id = $profile_id;
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){

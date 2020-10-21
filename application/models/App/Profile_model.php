@@ -5,8 +5,8 @@ use \Firebase\JWT\JWT;
 
 class Profile_model extends CI_Model {
 
-  	function detail_profile(){
-   		$patien_profile_id = $this->input->post("profile_id");
+  	function detail_profile($profile_id){
+   		$patien_profile_id = $profile_id;
    		$query_profile = "SELECT * FROM patient_profile as pp
    			JOIN patient_login as pl on pp.patient_login_id = pl.id
    			WHERE 1 
