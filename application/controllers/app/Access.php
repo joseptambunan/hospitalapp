@@ -80,7 +80,7 @@ class Access extends CI_Controller {
 
 		$check_bpjs = "SELECT * FROM patient_login WHERE 1 AND no_bpjs = ? AND no_medrec = ? AND dob = ? ";
 		$run_bpjs = $this->db->query($check_bpjs, array($bpjs_number,$medic_number,$date_of_birth));
-		if ( $run_bpjs->num_rows() < 0 ){
+		if ( $run_bpjs->num_rows() <= 0 ){
 			$data['error_code'] = "401";
 			$data['error_message'] = "BPJS and Medical Number not exist";
 			echo json_encode($data);
