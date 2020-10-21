@@ -2,6 +2,11 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 require_once('vendor/autoload.php');
 use \Firebase\JWT\JWT;
+header('Content-type: application/json');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Content-Length, Accept-Encoding");
+
 
 class Profile extends CI_Controller {
 
@@ -11,6 +16,7 @@ class Profile extends CI_Controller {
 	    $this->load->model('app/profile_model','profile');
 	    $this->load->model('app/master_model','master');
 	    $this->config->load('config');
+	    header("Access-Control-Allow-Origin: *");
 
 	    $auth = $this->access->check_header();
 	    if ( $auth != true ){
@@ -29,9 +35,12 @@ class Profile extends CI_Controller {
 	}
 
 	public function update_coordinate(){
-		$patient_profile_id = $this->input->post("patient_profile_id");
-		$longitude = $this->input->post("longitude");
-		$latitude = $this->input->post("latitude");
+		$obj = file_get_contents('php://input');
+		$edata = json_decode($obj);
+
+		$patient_profile_id = $edata->patient_profile_id;
+		$longitude = $edata->longitude;
+		$latitude = $edata->latitude;
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $patient_profile_id) == false ){
@@ -83,6 +92,7 @@ class Profile extends CI_Controller {
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){
+			http_response_code(401);
 			$data['code'] = "401";
 			$data['message'] = "INVALID TOKEN";
 			echo json_encode($data);
@@ -109,8 +119,11 @@ class Profile extends CI_Controller {
 	}
 
 	public function update_address(){
-		$profile_id = $this->input->post("profile_id");
-		$address = $this->input->post("address");
+		$obj = file_get_contents('php://input');
+		$edata = json_decode($obj);
+
+		$profile_id = $edata->profile_id;
+		$address = $edata->address;
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){
@@ -129,8 +142,11 @@ class Profile extends CI_Controller {
 
 
 	public function order(){
-		$profile_id = $this->input->post("profile_id");
-		$keluhan = $this->input->post("keluhan");
+		$obj = file_get_contents('php://input');
+		$edata = json_decode($obj);
+
+		$profile_id = $edata->profile_id; 
+		$keluhan = $edata->keluhanl
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){

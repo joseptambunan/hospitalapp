@@ -3,6 +3,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once('vendor/autoload.php');
 use \Firebase\JWT\JWT;
+header('Content-type: application/json');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Content-Length, Accept-Encoding");
+
 
 class Access extends CI_Controller {
 
@@ -11,6 +16,7 @@ class Access extends CI_Controller {
 	    $this->load->model('inbound/access_model','access');
 	    $this->config->load('config');
 	    $auth = $this->access->check_header();
+	    header("Access-Control-Allow-Origin: *");
 
 	    if ( $auth != true ){
 	    	$data['code'] = "401";
@@ -18,11 +24,14 @@ class Access extends CI_Controller {
 	    	echo json_encode($data);
 	    	exit;
 	    }
+
 	}
 
 	public function login(){
-		$bpjs_number = $this->input->post("bpjs_number");
-		$enc_password = crypt($this->input->post("password"),'$6$rounds=5000$saltsalt$');
+		$obj = file_get_contents('php://input');
+		$edata = json_decode($obj);
+		$bpjs_number = $edata->bpjs_number;
+		$enc_password = crypt($edata->password,'$6$rounds=5000$saltsalt$');
 		$check_bpjs = "SELECT * FROM patient_login WHERE 1 AND ( no_bpjs = ? OR no_medrec = ? ) AND password = ?";
 		$run_bpjs = $this->db->query($check_bpjs,array($bpjs_number, $bpjs_number,$enc_password));
 		if ( $run_bpjs->num_rows() <= 0 ){
@@ -67,12 +76,15 @@ class Access extends CI_Controller {
 	}
 
 	public function register(){
-		$bpjs_number = $this->input->post("bpjs_number");
-		$medic_number = $this->input->post("medic_number");
-		$date_of_birth = date("Y-m-d", strtotime($this->input->post("date_of_birth")));
-		$temp_password =  $this->input->post("password");
+		$obj = file_get_contents('php://input');
+		$edata = json_decode($obj);
+
+		$bpjs_number = $eedata->bpjs_number;
+		$medic_number = $eedata->medic_number;
+		$date_of_birth = date("Y-m-d", strtotime($eedata->date_of_birth));
+		$temp_password =  $eedata->password;
 		$password = crypt($temp_password,'$6$rounds=5000$saltsalt$');
-		$mobile_number = $this->input->post('mobile_number');
+		$mobile_number = $eedata->mobile_number;
 		$first_name = "";
 		$last_name = "";
 		$created_at = date("Y-m-d H:i:s");
