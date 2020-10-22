@@ -3,11 +3,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once('vendor/autoload.php');
 use \Firebase\JWT\JWT;
-header('Content-type: application/json');
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Content-Length, Accept-Encoding");
-
 
 class Access extends CI_Controller {
 
@@ -16,7 +11,6 @@ class Access extends CI_Controller {
 	    $this->load->model('inbound/access_model','access');
 	    $this->config->load('config');
 	    $auth = $this->access->check_header();
-	    header("Access-Control-Allow-Origin: *");
 
 	    if ( $auth != true ){
 	    	$data['code'] = "401";
@@ -24,6 +18,11 @@ class Access extends CI_Controller {
 	    	echo json_encode($data);
 	    	exit;
 	    }
+	    
+		header('Content-type: application/json');
+		header("Access-Control-Allow-Origin: *");
+		header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
+		header("Access-Control-Allow-Headers: *");
 
 	}
 

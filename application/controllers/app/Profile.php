@@ -2,11 +2,6 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 require_once('vendor/autoload.php');
 use \Firebase\JWT\JWT;
-header('Content-type: application/json');
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Content-Length, Accept-Encoding");
-
 
 class Profile extends CI_Controller {
 
@@ -16,7 +11,6 @@ class Profile extends CI_Controller {
 	    $this->load->model('app/profile_model','profile');
 	    $this->load->model('app/master_model','master');
 	    $this->config->load('config');
-	    header("Access-Control-Allow-Origin: *");
 
 	    $auth = $this->access->check_header();
 	    if ( $auth != true ){
@@ -32,6 +26,11 @@ class Profile extends CI_Controller {
 	    	echo json_encode($data);
 	    	exit;
 	    }
+
+	    header('Content-type: application/json');
+		header("Access-Control-Allow-Origin: *");
+		header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
+		header("Access-Control-Allow-Headers: *");
 	}
 
 	public function update_coordinate(){
@@ -146,7 +145,9 @@ class Profile extends CI_Controller {
 		$edata = json_decode($obj);
 
 		$profile_id = $edata->profile_id; 
-		$keluhan = $edata->keluhanl
+		$keluhan = $edata->keluhan;
+		$description = $edata->description;
+
 		$access_token = $_SERVER['HTTP_TOKEN'];
 
 		if ( $this->profile->check_token($access_token, $profile_id) == false ){
@@ -161,7 +162,8 @@ class Profile extends CI_Controller {
 			"delivery_date" => date("Y-m-d H:i:s"),
 			"created_at" => date("Y-m-d H:i:s"),
 			"status" => 1,
-			"keluhan" => $keluhan
+			"keluhan" => $keluhan,
+			'description' => $description
 		);
 		$this->db->insert("order_patient", $array_insert);
 		if ( $keluhan == 1 ){
