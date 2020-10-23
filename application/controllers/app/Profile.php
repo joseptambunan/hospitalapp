@@ -2,14 +2,15 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 require_once('vendor/autoload.php');
 use \Firebase\JWT\JWT;
-header('Content-type: application/json');
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
-header("Access-Control-Allow-Headers: *");
 
 class Profile extends CI_Controller {
 
 	function __construct() {
+		header('Content-type: application/json');
+		header("Access-Control-Allow-Origin: *");
+		header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
+		header("Access-Control-Allow-Headers: *");
+		
 	    parent::__construct();
 	    $this->load->model('inbound/access_model','access');
 	    $this->load->model('app/profile_model','profile');
@@ -48,7 +49,7 @@ class Profile extends CI_Controller {
 		$data['code'] = "200";
     	$data['message'] = "Success Profile";
     	$data['token'] = $access_token;
-    	
+
     	echo json_encode($data);
 	}
 
