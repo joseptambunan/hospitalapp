@@ -2,6 +2,10 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 require_once('vendor/autoload.php');
 use \Firebase\JWT\JWT;
+header('Content-type: application/json');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
+header("Access-Control-Allow-Headers: *");
 
 class Profile extends CI_Controller {
 
@@ -14,6 +18,7 @@ class Profile extends CI_Controller {
 
 	    $auth = $this->access->check_header();
 	    if ( $auth != true ){
+	    	header("HTTP/1.1 401");
 	    	$data['code'] = "401";
 	    	$data['message'] = "HEADER NOT ALLOWED";
 	    	echo json_encode($data);
@@ -21,65 +26,30 @@ class Profile extends CI_Controller {
 	    }
 
 	    if ( !(isset($_SERVER['HTTP_TOKEN']))) {
+	    	header("HTTP/1.1 401");
 	    	$data['code'] = "401";
 	    	$data['message'] = "HEADER TOKEN NOT AVAILABLE";
 	    	echo json_encode($data);
 	    	exit;
 	    }
-
-	    header('Content-type: application/json');
-		header("Access-Control-Allow-Origin: *");
-		header("Access-Control-Allow-Methods: GET,PUT,DELETE,POST, OPTIONS");
-		header("Access-Control-Allow-Headers: *");
 	}
 
-	public function update_coordinate(){
-		$obj = file_get_contents('php://input');
-		$edata = json_decode($obj);
+	public function detail_profile(){
 
-		$patient_profile_id = $edata->patient_profile_id;
-		$longitude = $edata->longitude;
-		$latitude = $edata->latitude;
 		$access_token = $_SERVER['HTTP_TOKEN'];
-
-		if ( $this->profile->check_token($access_token, $patient_profile_id) == false ){
-			$data['code'] = "401";
-			$data['message'] = "INVALID TOKEN";
-			echo json_encode($data);
-			exit();
+		if ( $this->profile->check_token($access_token) == false ){
+			header("HTTP/1.1 401");
+	    	$data['code'] = "401";
+	    	$data['message'] = "HEADER TOKEN NOT MATCH";
+	    	echo json_encode($data);
+	    	exit;
 		}
 
-		$array_update = array(
-			"longitude" => $longitude,
-			"latitude" => $latitude
-		);
-		$this->db->where("id", $patient_profile_id);
-		$this->db->update("patient_profile",$array_update);
 		$data['code'] = "200";
-		$data['message'] = "Coordinate Has ben Update";
-
-		echo json_encode($data);
-	}
-
-	public function detail_profile($profile_id){
-		$profile_id = $profile_id;
-		$profile = $this->profile->detail_profile($profile_id);
-		$visit = $this->profile->visit_profile($profile_id);
-		if ( count($profile) > 0 ){
-			$array_profile['detail_profile'] = $profile[0];
-		}
-
-		$access_token = $_SERVER['HTTP_TOKEN'];
-		if ( $this->profile->check_token($access_token, $profile_id) == false ){
-			$data['code'] = "401";
-			$data['message'] = "INVALID TOKEN";
-			echo json_encode($data);
-			exit();
-		}
-
-		$array_profile['visit'] = array();
-	
-		echo json_encode($array_profile);
+    	$data['message'] = "Success Profile";
+    	$data['token'] = $access_token;
+    	
+    	echo json_encode($data);
 	}
 
 	public function check_order($profile_id){
@@ -136,6 +106,34 @@ class Profile extends CI_Controller {
 
 		$data['code'] = "200";
 		$data['message'] = "Address has been updated";
+		echo json_encode($data);
+	}
+
+	public function update_coordinate(){
+		$obj = file_get_contents('php://input');
+		$edata = json_decode($obj);
+
+		$patient_profile_id = $edata->patient_profile_id;
+		$longitude = $edata->longitude;
+		$latitude = $edata->latitude;
+		$access_token = $_SERVER['HTTP_TOKEN'];
+
+		if ( $this->profile->check_token($access_token, $patient_profile_id) == false ){
+			$data['code'] = "401";
+			$data['message'] = "INVALID TOKEN";
+			echo json_encode($data);
+			exit();
+		}
+
+		$array_update = array(
+			"longitude" => $longitude,
+			"latitude" => $latitude
+		);
+		$this->db->where("id", $patient_profile_id);
+		$this->db->update("patient_profile",$array_update);
+		$data['code'] = "200";
+		$data['message'] = "Coordinate Has ben Update";
+
 		echo json_encode($data);
 	}
 
