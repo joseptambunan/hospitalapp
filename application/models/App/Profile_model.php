@@ -7,7 +7,7 @@ class Profile_model extends CI_Model {
 
   	function detail_profile($profile_id){
    		$patien_profile_id = $profile_id;
-   		$query_profile = "SELECT * FROM patient_profile as pp
+   		$query_profile = "SELECT pp.id FROM patient_profile as pp
    			JOIN patient_login as pl on pp.patient_login_id = pl.id
    			WHERE 1 
    				AND pp.id = ? ";
@@ -32,16 +32,17 @@ class Profile_model extends CI_Model {
   		return $array_visit;
   	}
 
-    function check_token($token, $profile_id = ""){
+    function check_token($token){
       $this->config->load('config');
+
       $check_token = "SELECT  * FROM patient_login WHERE remember_token = ? ";
       $run_token = $this->db->query($check_token, array($token));
-
       if ( $run_token->num_rows() > 0 ){
         $secret_key = $this->config->item('secret_key');
         $decoded = JWT::decode($token, $secret_key, array('HS256'));
+        $result = $run_token->result_array();
         if ( isset($decoded->uid)){
-          if ( $decoded->uid != $profile_id ){
+          if ( $decoded->uid != $result[0]['id'] ){
             return false;
           }
           return true;
